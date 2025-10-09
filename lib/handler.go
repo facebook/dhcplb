@@ -24,15 +24,16 @@ import (
 
 // List of possible errors.
 const (
-	ErrUnknown  = "E_UNKNOWN"
-	ErrPanic    = "E_PANIC"
-	ErrRead     = "E_READ"
-	ErrConnect  = "E_CONN"
-	ErrWrite    = "E_WRITE"
-	ErrGi0      = "E_GI_0"
-	ErrParse    = "E_PARSE"
-	ErrNoServer = "E_NO_SERVER"
-	ErrConnRate = "E_CONN_RATE"
+	ErrUnknown   = "E_UNKNOWN"
+	ErrPanic     = "E_PANIC"
+	ErrRead      = "E_READ"
+	ErrConnect   = "E_CONN"
+	ErrWrite     = "E_WRITE"
+	ErrGi0       = "E_GI_0"
+	ErrParse     = "E_PARSE"
+	ErrNoServer  = "E_NO_SERVER"
+	ErrConnRate  = "E_CONN_RATE"
+	ErrNoHandler = "E_NO_HANDLER"
 )
 
 func (s *Server) handleConnection(ctx context.Context) {
@@ -207,7 +208,16 @@ func (s *Server) handleRawPacketV4(ctx context.Context, buffer []byte, peer *net
 }
 
 func (s *Server) handleV4Server(ctx context.Context, start time.Time, packet *dhcpv4.DHCPv4, peer *net.UDPAddr) {
+	if s.config.Handler == nil {
+		glog.Errorf("No handler configured. Ignoring packet")
+		s.logger.LogErr(start, nil, packet.ToBytes(), peer, ErrNoHandler, nil)
+		return
+	}
 	reply, err := s.config.Handler.ServeDHCPv4(ctx, packet)
+	if reply == nil {
+		glog.Errorf("No reply from handler. Ignoring request")
+		return
+	}
 	s.logger.LogSuccess(start, nil, packet.ToBytes(), peer)
 	if err != nil {
 		glog.Errorf("Error creating reply %s", err)
