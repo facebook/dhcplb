@@ -93,9 +93,10 @@ func ParseConfig(jsonConfig, jsonOverrides []byte, version int, provider ConfigP
 		return nil, err
 	}
 	var spec configSpec
-	if version == 4 {
+	switch version {
+	case 4:
 		spec = combined.V4
-	} else if version == 6 {
+	case 6:
 		spec = combined.V6
 	}
 
@@ -278,12 +279,12 @@ func (c *configSpec) algorithm(provider ConfigProvider) (DHCPBalancingAlgorithm,
 
 func newConfig(spec *configSpec, overrides map[string]Override, provider ConfigProvider) (*Config, error) {
 	if spec.Version != 4 && spec.Version != 6 {
-		return nil, fmt.Errorf("Supported version: 4, 6 - not %d", spec.Version)
+		return nil, fmt.Errorf("supported version: 4, 6 - not %d", spec.Version)
 	}
 
 	targetIP := net.ParseIP(spec.ListenAddr)
 	if targetIP == nil {
-		return nil, fmt.Errorf("Unable to parse IP %s", targetIP)
+		return nil, fmt.Errorf("unable to parse IP %s", targetIP)
 	}
 	addr := &net.UDPAddr{
 		IP:   targetIP,
@@ -336,10 +337,11 @@ func parseOverrides(file []byte, version int) (map[string]Override, error) {
 		glog.Errorf("Failed to parse JSON: %s", err)
 		return nil, err
 	}
-	if version == 4 {
+	switch version {
+	case 4:
 		return overrides.V4, nil
-	} else if version == 6 {
+	case 6:
 		return overrides.V6, nil
 	}
-	return nil, fmt.Errorf("Unsupported version %d, must be 4|6", version)
+	return nil, fmt.Errorf("unsupported version %d, must be 4|6", version)
 }

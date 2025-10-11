@@ -57,9 +57,10 @@ func (s *Server) handleConnection(ctx context.Context) {
 			}
 		}()
 
-		if s.config.Version == 4 {
+		switch s.config.Version {
+		case 4:
 			s.handleRawPacketV4(ctx, buffer[:bytesRead], peer)
-		} else if s.config.Version == 6 {
+		case 6:
 			s.handleRawPacketV6(ctx, buffer[:bytesRead], peer)
 		}
 	}()
@@ -121,7 +122,7 @@ func handleOverride(config *Config, message *DHCPMessage) (*DHCPServer, error) {
 func handleHostOverride(config *Config, host string) (*DHCPServer, error) {
 	addr := net.ParseIP(host)
 	if addr == nil {
-		return nil, fmt.Errorf("Failed to get IP for overridden host %s", host)
+		return nil, fmt.Errorf("failed to get IP for overridden host %s", host)
 	}
 	port := 67
 	if config.Version == 6 {
@@ -134,15 +135,15 @@ func handleHostOverride(config *Config, host string) (*DHCPServer, error) {
 func handleTierOverride(config *Config, tier string, message *DHCPMessage) (*DHCPServer, error) {
 	servers, err := config.HostSourcer.GetServersFromTier(tier)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get servers from tier: %s", err)
+		return nil, fmt.Errorf("failed to get servers from tier: %s", err)
 	}
 	if len(servers) == 0 {
-		return nil, fmt.Errorf("Sourcer returned no servers")
+		return nil, fmt.Errorf("sourcer returned no servers")
 	}
 	// pick server according to the configured algorithm
 	server, err := config.Algorithm.SelectServerFromList(servers, message)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to select server: %s", err)
+		return nil, fmt.Errorf("failed to select server: %s", err)
 	}
 	return server, nil
 }
@@ -152,7 +153,7 @@ func (s *Server) sendToServer(start time.Time, server *DHCPServer, packet []byte
 	// Check for connection rate
 	ok, err := s.throttle.OK(server.Address.String())
 	if !ok {
-		glog.Errorf("Error writing to server %s, drop due to throttling", server.Hostname)
+		glog.Errorf("error writing to server %s, drop due to throttling", server.Hostname)
 		s.logger.LogErr(time.Now(), server, packet, peer, ErrConnRate, err)
 		return err
 	}
@@ -214,16 +215,16 @@ func (s *Server) handleV4Server(ctx context.Context, start time.Time, packet *dh
 		return
 	}
 	reply, err := s.config.Handler.ServeDHCPv4(ctx, packet)
-	if reply == nil {
-		glog.Errorf("No reply from handler. Ignoring request")
-		return
-	}
-	s.logger.LogSuccess(start, nil, packet.ToBytes(), peer)
 	if err != nil {
 		glog.Errorf("Error creating reply %s", err)
 		s.logger.LogErr(start, nil, packet.ToBytes(), peer, fmt.Sprintf("%T", err), err)
 		return
 	}
+	if reply == nil {
+		glog.Errorf("No reply from handler. Ignoring request")
+		return
+	}
+	s.logger.LogSuccess(start, nil, packet.ToBytes(), peer)
 	addr := &net.UDPAddr{
 		IP:   packet.GatewayIPAddr,
 		Port: dhcpv4.ServerPort,

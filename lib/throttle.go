@@ -54,13 +54,13 @@ func (c *Throttle) OK(key string) (bool, error) {
 			return limiter.Allow(), nil
 		}
 
-		err := fmt.Errorf("Cache invalidation is too fast (max: %d item/sec) - throttling", c.cacheRate)
+		err := fmt.Errorf("cache invalidation is too fast (max: %d item/sec) - throttling", c.cacheRate)
 		return false, err
 	}
 
 	// So the limiter object is in the cache. Try to allocate a bucket.
 	if !limiter.Allow() {
-		err := fmt.Errorf("Request rate is too high for %v (max: %d req/sec) - throttling", key, c.maxRatePerItem)
+		err := fmt.Errorf("request rate is too high for %v (max: %d req/sec) - throttling", key, c.maxRatePerItem)
 		return false, err
 	}
 
