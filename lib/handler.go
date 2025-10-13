@@ -135,7 +135,7 @@ func handleHostOverride(config *Config, host string) (*DHCPServer, error) {
 func handleTierOverride(config *Config, tier string, message *DHCPMessage) (*DHCPServer, error) {
 	servers, err := config.HostSourcer.GetServersFromTier(tier)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get servers from tier: %s", err)
+		return nil, fmt.Errorf("failed to get servers from tier: %w", err)
 	}
 	if len(servers) == 0 {
 		return nil, fmt.Errorf("sourcer returned no servers")
@@ -143,7 +143,7 @@ func handleTierOverride(config *Config, tier string, message *DHCPMessage) (*DHC
 	// pick server according to the configured algorithm
 	server, err := config.Algorithm.SelectServerFromList(servers, message)
 	if err != nil {
-		return nil, fmt.Errorf("failed to select server: %s", err)
+		return nil, fmt.Errorf("failed to select server: %w", err)
 	}
 	return server, nil
 }
