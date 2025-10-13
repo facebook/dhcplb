@@ -204,3 +204,11 @@ Create a configuration file and watch the config changes.
   configChan, err := dhcplb.WatchConfig(
     *configPath, *overridesPath, *version, &MyConfigProvider{})
 ```
+## Concrete example
+
+The project root directory contains a concrete example that can be used as a
+starting point.
+
+- `main.go`: main entry point where all objects are instantiated
+- `config_provider.go`: config provider implementation
+- `lib/range_handler.go`: an example implementation of the `Handler` interface, it implements DHCPv4 and DHCPv6 handlers using JSON lease files to assign and revoke IPs.

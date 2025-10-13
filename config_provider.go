@@ -9,8 +9,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
+	"time"
 
-	"github.com/facebookincubator/dhcplb/lib"
+	dhcplb "github.com/facebookincubator/dhcplb/lib"
 )
 
 // DefaultConfigProvider holds configuration for the server.
@@ -53,7 +56,47 @@ func (h DefaultConfigProvider) NewDHCPBalancingAlgorithm(version int) (dhcplb.DH
 
 // NewHandler takes an interface with extra configurations and returns a
 // Handler used for serving DHCP requests. It is only needed when using dhcplb
-// in server mode.
+// in server mode. Here we return the RangeHandler implementation as an example.
 func (h DefaultConfigProvider) NewHandler(extras interface{}, version int) (dhcplb.Handler, error) {
+	if extras == nil {
+		return nil, nil
+	}
+
+	// Define a struct to parse the handler config from the main JSON
+	type HandlerConfig struct {
+		Type      string                 `json:"type"`
+		StartIP   string                 `json:"start_ip"`
+		EndIP     string                 `json:"end_ip"`
+		LeaseTime string                 `json:"lease_time"`
+		LeaseFile string                 `json:"lease_file"`
+		Options   map[string]interface{} `json:"options"`
+	}
+
+	var handlerConf HandlerConfig
+	configBytes, err := json.Marshal(extras)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal handler config: %w", err)
+	}
+	if err := json.Unmarshal(configBytes, &handlerConf); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal handler config: %w", err)
+	}
+
+	if handlerConf.Type == "range" {
+		startIP := net.ParseIP(handlerConf.StartIP)
+		if startIP == nil {
+			return nil, fmt.Errorf("invalid start_ip: %s", handlerConf.StartIP)
+		}
+		endIP := net.ParseIP(handlerConf.EndIP)
+		if endIP == nil {
+			return nil, fmt.Errorf("invalid end_ip: %s", handlerConf.EndIP)
+		}
+		leaseTime, err := time.ParseDuration(handlerConf.LeaseTime)
+		if err != nil {
+			return nil, fmt.Errorf("invalid lease_time: %w", err)
+		}
+
+		return dhcplb.NewRangeHandler(startIP, endIP, leaseTime, handlerConf.Options, handlerConf.LeaseFile)
+	}
+
 	return nil, nil
 }
