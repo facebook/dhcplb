@@ -1,0 +1,67 @@
+# This GitHub Actions workflow runs the DHCP integration test on both macOS and Linux.
+
+name: Integration tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-lab:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies and Build (Linux)
+        run: |
+          # Install system packages
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            dnsmasq \
+            isc-dhcp-client \
+            iproute2 \
+            build-essential \
+            golang
+          
+          # Build and install the project binary into sudo's secure path
+          go install .
+          sudo cp ~/go/bin/dhcplb /usr/local/bin/
+
+      - name: RELAY MODE LAB
+        env:
+          CI: "true"
+        run: |
+          echo "🛠️  Running lab setup script..."
+          cd tests/ 
+          sudo ./setup_lab.sh relay
+
+      - name: DHCPv4 RELAY client test.
+        run: |
+          echo "▶️  Running DHCPv4 RELAY client test..."
+          sudo ip netns exec ns-client dhclient -v -1 v-cli
+          
+      - name: DHCPv6 RELAY client test.
+        run: |
+          echo "▶️  Running DHCPv6 RELAY client test..."
+          sudo ip netns exec ns-client dhclient -v -6 -1 v-cli
+
+      - name: SERVER MODE LAB
+        env:
+          CI: "true"
+        run: |
+          echo "🛠️  Running lab setup script..."
+          cd tests/
+          sudo ./setup_lab.sh server
+
+      - name: DHCPv4 SERVER client test
+        run: |
+          echo "▶️  Running DHCPv4 SERVER client test..."
+          sudo ip netns exec ns-client dhclient -v -1 v-cli
+          
+      - name: DHCPv6 SERVER client test
+        run: |
+          echo "▶️  Running DHCPv6 SERVER client test..."
+          sudo ip netns exec ns-client dhclient -v -6 -1 v-cli

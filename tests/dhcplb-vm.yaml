@@ -1,0 +1,38 @@
+# lima.yaml
+# A Lima VM for LOCAL testing of dhcplb on your macOS machine.
+
+# This configuration creates a VM with all necessary tools and mounts the
+# project directory for live development.
+
+# Use the latest Ubuntu LTS image.
+# Use aarch64 for Apple Silicon Macs (vz driver) or x86_64 for Intel Macs.
+images:
+  - location: https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-amd64.img
+    arch: x86_64
+  - location: https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-arm64.img
+    arch: aarch64
+
+# Mount the project directory into the VM at /dhcplb.
+mounts:
+  - location: "~"
+    writable: true
+
+cpus: 2
+memory: "4GiB"
+disk: "10GiB"
+
+# Provision the VM with all necessary tools. This runs on first boot.
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update
+      apt-get install -y --no-install-recommends \
+        dnsmasq \
+        isc-dhcp-client \
+        iproute2 \
+        build-essential \
+        wget \
+        golang
