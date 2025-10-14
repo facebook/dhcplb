@@ -1,0 +1,74 @@
+# This GitHub Actions workflow runs the DHCP integration test on both macOS and Linux.
+
+name: DHCP Lab Integration Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-lab:
+    strategy:
+      # Run a job for each OS in the matrix.
+      matrix:
+        # TODO: make macos-latest work
+        # os: [macos-latest, ubuntu-latest]
+        os: [ubuntu-latest]
+    
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # # --- macOS Setup ---
+      # TODO: make me work
+      # - name: Install Lima and QEMU (macOS)
+      #   if: matrix.os == 'macos-latest'
+      #   run: brew install lima qemu
+
+      # - name: Cache Lima downloads (macOS)
+      #   if: matrix.os == 'macos-latest'
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.lima
+      #     key: lima-cache-${{ runner.os }}
+
+      # --- Linux Setup ---
+      - name: Install Dependencies and Build (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          # Install system packages
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            dnsmasq \
+            isc-dhcp-client \
+            iproute2 \
+            build-essential \
+            golang
+          
+          # Build and install the project binary into sudo's secure path
+          go install .
+          sudo cp ~/go/bin/dhcplb /usr/local/bin/
+
+      # --- Run the Test ---
+      # - name: Run Lima Test Lab (macOS)
+      # TODO: make me work
+      #   if: matrix.os == 'macos-latest'
+      #   working-directory: ./tests
+      #   run: |
+      #     make start
+      #     make setup
+      #     make test-client
+
+      - name: Run Native Test Lab (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          # The setup script now assumes the binary is already installed.
+          # We run it with sudo because it creates network namespaces.
+          sudo ./tests/setup_lab.sh
+          
+          # After setup, run the client to get an IP.
+          echo "--> Running DHCP client test in 'ns-client'..."
+          sudo ip netns exec ns-client dhclient -v -1 v-cli
