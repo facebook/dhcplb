@@ -535,13 +535,22 @@ func (s *Server) handleV6RelayRepl(start time.Time, packet dhcpv6.DHCPv6, peer *
 }
 
 func (s *Server) handleV6Server(ctx context.Context, start time.Time, packet dhcpv6.DHCPv6, peer *net.UDPAddr, cm *ipv6.ControlMessage) {
+	if s.config.Handler == nil {
+		glog.Errorf("No handler configured. Ignoring packet")
+		s.logger.LogErr(start, nil, packet.ToBytes(), peer, ErrNoHandler, nil)
+		return
+	}
 	reply, err := s.config.Handler.ServeDHCPv6(ctx, packet)
-	s.logger.LogSuccess(start, nil, packet.ToBytes(), peer)
 	if err != nil {
 		glog.Errorf("Error creating reply %s", err)
 		s.logger.LogErr(start, nil, packet.ToBytes(), peer, fmt.Sprintf("%T", err), err)
 		return
 	}
+	if reply == nil {
+		glog.Errorf("No reply from handler. Ignoring request")
+		return
+	}
+	s.logger.LogSuccess(start, nil, packet.ToBytes(), peer)
 	addr := &net.UDPAddr{
 		IP:   peer.IP,
 		Port: peer.Port,

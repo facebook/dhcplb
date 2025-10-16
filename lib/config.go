@@ -312,7 +312,12 @@ func newConfig(spec *configSpec, overrides map[string]Override, provider ConfigP
 	if err != nil {
 		return nil, err
 	}
-	handler, err := provider.NewHandler(spec.Handler, spec.Version)
+	var handler Handler
+	if extras != nil {
+		handler, err = provider.NewHandler(extras, spec.Version)
+	} else {
+		handler, err = provider.NewHandler(spec.Handler, spec.Version)
+	}
 	if err != nil {
 		return nil, err
 	}
