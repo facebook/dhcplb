@@ -1,2 +1,4 @@
 .vagrant
 *.swp
+dhcplb
+.vscode/*

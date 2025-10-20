@@ -201,9 +201,10 @@ type configSpec struct {
 	AlgorithmName        string          `json:"algorithm"`
 	UpdateServerInterval int             `json:"update_server_interval"`
 	PacketBufSize        int             `json:"packet_buf_size"`
-	HostSourcer          string          `json:"host_sourcer"`
+	HostSourcer          string          `json:"host_sourcer,omitempty"`
 	RCRatio              uint32          `json:"rc_ratio"`
-	Extras               json.RawMessage `json:"extras"`
+	Extras               json.RawMessage `json:"extras,omitempty"`
+	Handler              json.RawMessage `json:"handler,omitempty"`
 	CacheSize            int             `json:"throttle_cache_size"`
 	CacheRate            int             `json:"throttle_cache_rate"`
 	Rate                 int             `json:"throttle_rate"`
@@ -216,6 +217,11 @@ type combinedconfigSpec struct {
 }
 
 func (c *configSpec) sourcer(provider ConfigProvider) (DHCPServerSourcer, error) {
+	// if no host sourcer is defined, just return nil.
+	// this is the case for server mode
+	if c.HostSourcer == "" {
+		return nil, nil
+	}
 	// Load the DHCPServerSourcer implementation
 	sourcerInfo := strings.Split(c.HostSourcer, ":")
 	sourcerType := sourcerInfo[0]
@@ -266,7 +272,7 @@ func (c *configSpec) algorithm(provider ConfigProvider) (DHCPBalancingAlgorithm,
 		for k := range algorithms {
 			supported = append(supported, k)
 		}
-		glog.Fatalf(
+		glog.Errorf(
 			"'%s' is not a supported balancing algorithm. "+
 				"Supported balancing algorithms are: %v",
 			c.AlgorithmName, supported)
@@ -306,7 +312,12 @@ func newConfig(spec *configSpec, overrides map[string]Override, provider ConfigP
 	if err != nil {
 		return nil, err
 	}
-	handler, err := provider.NewHandler(extras, spec.Version)
+	var handler Handler
+	if extras != nil {
+		handler, err = provider.NewHandler(extras, spec.Version)
+	} else {
+		handler, err = provider.NewHandler(spec.Handler, spec.Version)
+	}
 	if err != nil {
 		return nil, err
 	}

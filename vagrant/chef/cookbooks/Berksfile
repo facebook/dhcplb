@@ -1,4 +1,0 @@
-source "https://supermarket.chef.io/"
-cookbook 'apt'
-cookbook 'golang'
-cookbook 'poise-service'
