@@ -14,7 +14,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	dhcplb "github.com/facebookincubator/dhcplb/lib"
+	dhcplb "github.com/facebook/dhcplb/lib"
 	"github.com/golang/glog"
 )
 

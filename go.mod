@@ -1,4 +1,4 @@
-module github.com/facebookincubator/dhcplb
+module github.com/facebook/dhcplb
 
 go 1.19
 

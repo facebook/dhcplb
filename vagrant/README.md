@@ -63,12 +63,12 @@ want to change something there you can test your `chef` changes using
 Just edit `dhcplb`'s code on your host machine (the machine running VirtualBox
 or whatever VM solution you are using). The root directory of your github
 checkout will be mounted into the `dhcplb` VM at
-`~/go/src/github.com/facebookincubator/dhcplb`.
+`~/go/src/github.com/facebook/dhcplb`.
 
 You can compile the binary using:
 
 ```
-$ cd ~/go/src/github.com/facebookincubator/dhcplb
+$ cd ~/go/src/github.com/facebook/dhcplb
 $ go build
 $ sudo mv dhcplb $GOBIN
 ```

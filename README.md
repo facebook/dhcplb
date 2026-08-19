@@ -83,7 +83,7 @@ packets or DHCPv6 SOLICIT packets sent to `ff02::1:2` multicast address. We
 don't need this in our production environment but adding that support should be
 trivial though.
 
-TODOs and improvements are tracked [here](https://github.com/facebookincubator/dhcplb/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)
+TODOs and improvements are tracked [here](https://github.com/facebook/dhcplb/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)
 
 PRs are welcome!
 
@@ -107,7 +107,7 @@ In DHCPv6 responses by the dhcp server will traverse the load balancer.
 To install `dhcplb` into `$GOPATH/bin/dhcplb`, simply run:
 
 ```
-$ go install github.com/facebookincubator/dhcplb@latest
+$ go install github.com/facebook/dhcplb@latest
 ```
 
 # Cloning
@@ -115,10 +115,10 @@ $ go install github.com/facebookincubator/dhcplb@latest
 If you wish to clone the repo you can do the following:
 
 ```
-$ mkdir -p $GOPATH/src/github.com/facebookincubator
+$ mkdir -p $GOPATH/src/github.com/facebook
 $ cd $_
-$ git clone https://github.com/facebookincubator/dhcplb
-$ go install github.com/facebookincubator/dhcplb
+$ git clone https://github.com/facebook/dhcplb
+$ go install github.com/facebook/dhcplb
 ```
 
 # Run unit tests
@@ -126,7 +126,7 @@ $ go install github.com/facebookincubator/dhcplb
 You can run tests with:
 
 ```
-$ cd $GOPATH/src/github.com/facebookincubator/dhcplb/lib
+$ cd $GOPATH/src/github.com/facebook/dhcplb/lib
 $ go test
 ```
 

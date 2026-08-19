@@ -13,7 +13,7 @@ import (
 	"sort"
 	"strings"
 
-	dhcplb "github.com/facebookincubator/dhcplb/lib"
+	dhcplb "github.com/facebook/dhcplb/lib"
 	"github.com/golang/glog"
 	"github.com/insomniacslk/dhcp/dhcpv4"
 	"github.com/insomniacslk/dhcp/dhcpv6"
